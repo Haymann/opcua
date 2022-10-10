@@ -45,7 +45,7 @@ mod aes_128_sha_256_rsa_oaep {
 
     pub const SYMMETRIC_SIGNATURE_ALGORITHM: &str = DSIG_HMAC_SHA256;
     pub const ASYMMETRIC_SIGNATURE_ALGORITHM: &str = DSIG_RSA_SHA256;
-    pub const ASYMMETRIC_ENCRYPTION_ALGORITHM: &str = ENC_RSA_15;
+    pub const ASYMMETRIC_ENCRYPTION_ALGORITHM: &str = ENC_RSA_OAEP;
     pub const DERIVED_SIGNATURE_KEY_LENGTH: usize = 256;
     pub const ASYMMETRIC_KEY_LENGTH: (usize, usize) = (2048, 4096);
 }
@@ -73,7 +73,7 @@ mod aes_256_sha_256_rsa_pss {
 
     pub const SYMMETRIC_SIGNATURE_ALGORITHM: &str = DSIG_HMAC_SHA256;
     pub const ASYMMETRIC_SIGNATURE_ALGORITHM: &str = DSIG_RSA_PSS_SHA2_256;
-    pub const ASYMMETRIC_ENCRYPTION_ALGORITHM: &str = ENC_RSA_OAEP;
+    pub const ASYMMETRIC_ENCRYPTION_ALGORITHM: &str = ENC_RSA_OAEP_SHA256;
     pub const DERIVED_SIGNATURE_KEY_LENGTH: usize = 256;
     pub const ASYMMETRIC_KEY_LENGTH: (usize, usize) = (2048, 4096);
 }
@@ -378,6 +378,10 @@ impl SecurityPolicy {
     pub fn is_valid_keylength(&self, keylength: usize) -> bool {
         let min_max = self.min_max_asymmetric_keylength();
         keylength >= min_max.0 && keylength <= min_max.1
+    }
+
+    pub fn random_nonce_by_length(length: usize) -> ByteString {
+        random::byte_string(length)
     }
 
     /// Creates a random nonce in a bytestring with a length appropriate for the policy

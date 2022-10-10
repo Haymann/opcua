@@ -155,8 +155,8 @@ impl Session {
         ignore_clock_skew: bool,
         single_threaded_executor: bool,
     ) -> Session
-        where
-            T: Into<UAString>,
+    where
+        T: Into<UAString>,
     {
         let session_name = session_name.into();
 
@@ -254,8 +254,8 @@ impl Session {
     /// * `session_closed_callback` - the session closed callback
     ///
     pub fn set_session_closed_callback<CB>(&mut self, session_closed_callback: CB)
-        where
-            CB: OnSessionClosed + Send + Sync + 'static,
+    where
+        CB: OnSessionClosed + Send + Sync + 'static,
     {
         let mut session_state = trace_write_lock!(self.session_state);
         session_state.set_session_closed_callback(session_closed_callback);
@@ -269,8 +269,8 @@ impl Session {
     /// * `connection_status_callback` - the connection status callback.
     ///
     pub fn set_connection_status_callback<CB>(&mut self, connection_status_callback: CB)
-        where
-            CB: OnConnectionStatusChange + Send + Sync + 'static,
+    where
+        CB: OnConnectionStatusChange + Send + Sync + 'static,
     {
         let mut session_state = trace_write_lock!(self.session_state);
         session_state.set_connection_status_callback(connection_status_callback);
@@ -1320,11 +1320,7 @@ impl SessionService for Session {
         // Get some state stuff
         let endpoint_url = self.session_info.endpoint.endpoint_url.clone();
 
-        let client_nonce = {
-            let secure_channel = trace_read_lock!(self.secure_channel);
-            secure_channel.local_nonce_as_byte_string()
-        };
-
+        let client_nonce = SecurityPolicy::random_nonce_by_length(32);
         let server_uri = UAString::null();
         let session_name = self.session_name.clone();
 
@@ -1527,6 +1523,7 @@ impl SessionService for Session {
             process_service_result(&response.response_header)?;
             Ok(())
         } else {
+            trace!("ActivateSessionResponse = {:#?}", response);
             Err(process_unexpected_response(response))
         }
     }
@@ -2398,7 +2395,7 @@ impl AttributeService for Session {
             // Turn the enums into ExtensionObjects
             let history_update_details = history_update_details
                 .iter()
-                .map(|action|ExtensionObject::from(action))
+                .map(|action| ExtensionObject::from(action))
                 .collect::<Vec<ExtensionObject>>();
 
             let request = HistoryUpdateRequest {
