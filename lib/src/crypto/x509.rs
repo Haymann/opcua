@@ -268,14 +268,16 @@ impl X509 {
         // Issuer and subject shall be the same for self-signed cert
         let _ = builder.set_subject_name(&issuer_name);
         let _ = builder.set_issuer_name(&issuer_name);
-
+        // Fix self-signed cert validation issue: Add Basic Constraints for self-signed cert.
+        let basic_constraints = BasicConstraints::new().build().unwrap();
+        let _ = builder.append_extension(basic_constraints);
         // For Application Instance Certificate specifies how cert may be used
         let key_usage = KeyUsage::new()
             .digital_signature()
             .non_repudiation()
             .key_encipherment()
             .data_encipherment()
-            .key_cert_sign()
+            // .key_cert_sign()
             .build()
             .unwrap();
         let _ = builder.append_extension(key_usage);
