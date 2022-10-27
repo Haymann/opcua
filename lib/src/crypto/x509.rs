@@ -277,7 +277,7 @@ impl X509 {
             .non_repudiation()
             .key_encipherment()
             .data_encipherment()
-            // .key_cert_sign()
+            .key_cert_sign()
             .build()
             .unwrap();
         let _ = builder.append_extension(key_usage);
