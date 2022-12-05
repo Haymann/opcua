@@ -753,6 +753,58 @@ impl Session {
         Ok(did_something)
     }
 
+    pub fn sync_poll(&mut self) -> Result<bool, ()> {
+        let did_something = if self.is_connected() {
+            let mut session_state = trace_write_lock!(self.session_state);
+            session_state.handle_publish_responses()
+        } else {
+            let should_retry_connect = {
+                let session_retry_policy = trace_lock!(self.session_retry_policy);
+                session_retry_policy.should_retry_connect(DateTime::now())
+            };
+            match should_retry_connect {
+                Answer::GiveUp => {
+                    let session_retry_policy = trace_lock!(self.session_retry_policy);
+                    session_error!(
+                        self,
+                        "Session has given up trying to reconnect to the server after {} retries",
+                        session_retry_policy.retry_count()
+                    );
+                    return Err(());
+                }
+                Answer::Retry => {
+                    info!("Retrying to reconnect to server...");
+                    {
+                        let mut session_retry_policy = trace_lock!(self.session_retry_policy);
+                        session_retry_policy.set_last_attempt(DateTime::now());
+                    }
+                    if self.reconnect_and_activate().is_ok() {
+                        info!("Retry to connect was successful");
+                        let mut session_retry_policy = trace_lock!(self.session_retry_policy);
+                        session_retry_policy.reset_retry_count();
+                    } else {
+                        let mut session_retry_policy = trace_lock!(self.session_retry_policy);
+                        session_retry_policy.increment_retry_count();
+                        session_warn!(
+                            self,
+                            "Reconnect was unsuccessful, retries = {}",
+                            session_retry_policy.retry_count()
+                        );
+                        drop(session_retry_policy);
+                        self.disconnect();
+                    }
+                    true
+                }
+                Answer::WaitFor(_) => {
+                    // Note we could sleep for the interval in the WaitFor(), but the poll() sleeps
+                    // anyway so it probably makes no odds.
+                    false
+                }
+            }
+        };
+        Ok(did_something)
+    }
+
     /// Start a task that will periodically "ping" the server to keep the session alive. The ping rate
     /// will be 3/4 the session timeout rate.
     ///
