@@ -166,17 +166,19 @@ impl SessionState {
         subscription_state: Arc<RwLock<SubscriptionState>>,
     ) -> SessionState {
         let id = NEXT_SESSION_ID.fetch_add(1, Ordering::Relaxed);
+        let decoding_options = secure_channel.read().decoding_options();
         SessionState {
             id,
             client_offset: Duration::zero(),
             ignore_clock_skew,
+            max_message_size: decoding_options.max_message_size, //Fix for issue where responses cannot be returned from OPCUA Server due to the actual response size is greater than the client max_message_size limit.
+            max_chunk_count: decoding_options.max_chunk_count, //Fix for issue where responses cannot be returned from OPCUA Server due to the actual response size is greater than the client max_message_size limit.
             secure_channel,
             connection_state: ConnectionStateMgr::new(),
             request_timeout: Self::DEFAULT_REQUEST_TIMEOUT,
             send_buffer_size: Self::SEND_BUFFER_SIZE,
             receive_buffer_size: Self::RECEIVE_BUFFER_SIZE,
-            max_message_size: Self::MAX_BUFFER_SIZE,
-            max_chunk_count: constants::MAX_CHUNK_COUNT,
+
             request_handle: Handle::new(Self::FIRST_REQUEST_HANDLE),
             session_id: NodeId::null(),
             authentication_token: NodeId::null(),

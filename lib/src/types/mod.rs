@@ -40,7 +40,7 @@ pub mod constants {
     /// as the default since server memory could be exhausted. Default number can be overridden
     /// by client / server config which is where it should happen if you want a different figure. In clients
     /// chunk size is a preferred value since the server can modify it during the handshake.
-    pub const MAX_CHUNK_COUNT: usize = 5;
+    pub const MAX_CHUNK_COUNT: usize = 16; // Increased for issues where responses cannot be returned from OPCUA Server due to the actual response size is greater than the client max_message_size.
     /// Default maximum decoding depth for recursive data structures, i.e. if data is nested deeper than this it is
     /// an error during decoding. This is a security measure to stop deeply nested junk being sent to
     /// a server / client.
