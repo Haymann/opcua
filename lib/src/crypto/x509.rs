@@ -111,12 +111,10 @@ impl X509Data {
     ) -> Vec<String> {
         // The first name is the application uri
         let mut result = vec![application_uri.to_string()];
-
         // Addresses supplied by caller
         if let Some(mut addresses) = addresses {
             result.append(&mut addresses);
         }
-
         // The remainder are alternative IP/DNS entries
         if add_localhost {
             result.push("localhost".to_string());
