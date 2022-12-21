@@ -33,6 +33,7 @@ use super::{
 const DEFAULT_KEYSIZE: u32 = 2048;
 const DEFAULT_COUNTRY: &str = "IE";
 const DEFAULT_STATE: &str = "Dublin";
+const DEFAULT_DURATION_DAYS: u32 = 365 * 3;
 
 #[derive(Debug)]
 /// Used to create an X509 cert (and private key)
@@ -67,7 +68,7 @@ impl From<(ApplicationDescription, Option<Vec<String>>)> for X509Data {
             country: DEFAULT_COUNTRY.to_string(),
             state: DEFAULT_STATE.to_string(),
             alt_host_names,
-            certificate_duration_days: 365,
+            certificate_duration_days: DEFAULT_DURATION_DAYS,
         }
     }
 }
@@ -170,7 +171,7 @@ impl X509Data {
             country: DEFAULT_COUNTRY.to_string(),
             state: DEFAULT_STATE.to_string(),
             alt_host_names,
-            certificate_duration_days: 365,
+            certificate_duration_days: DEFAULT_DURATION_DAYS,
         }
     }
 }
@@ -245,30 +246,30 @@ impl X509 {
     pub fn from_pkey(pkey: &PrivateKey, x509_data: &X509Data) -> Result<Self, String> {
         let mut builder = x509::X509Builder::new().unwrap();
         // value 2 == version 3 (go figure)
-        let _ = builder.set_version(2);
+        builder.set_version(2).unwrap();
         let issuer_name = {
             let mut name = x509::X509NameBuilder::new().unwrap();
             // Common name
             name.append_entry_by_text("CN", &x509_data.common_name)
                 .unwrap();
             // Organization
-            name.append_entry_by_text("O", &x509_data.organization)
-                .unwrap();
+            // name.append_entry_by_text("O", &x509_data.organization)
+            //     .unwrap();
             // Organizational Unit
-            name.append_entry_by_text("OU", &x509_data.organizational_unit)
-                .unwrap();
+            // name.append_entry_by_text("OU", &x509_data.organizational_unit)
+            //     .unwrap();
             // Country
-            name.append_entry_by_text("C", &x509_data.country).unwrap();
+            // name.append_entry_by_text("C", &x509_data.country).unwrap();
             // State
-            name.append_entry_by_text("ST", &x509_data.state).unwrap();
+            // name.append_entry_by_text("ST", &x509_data.state).unwrap();
             name.build()
         };
         // Issuer and subject shall be the same for self-signed cert
-        let _ = builder.set_subject_name(&issuer_name);
-        let _ = builder.set_issuer_name(&issuer_name);
+        builder.set_subject_name(&issuer_name).unwrap();
+        builder.set_issuer_name(&issuer_name).unwrap();
         // Fix self-signed cert validation issue: Add Basic Constraints for self-signed cert.
         let basic_constraints = BasicConstraints::new().build().unwrap();
-        let _ = builder.append_extension(basic_constraints);
+        builder.append_extension(basic_constraints).unwrap();
         // For Application Instance Certificate specifies how cert may be used
         let key_usage = KeyUsage::new()
             .digital_signature()
@@ -278,13 +279,13 @@ impl X509 {
             .key_cert_sign()
             .build()
             .unwrap();
-        let _ = builder.append_extension(key_usage);
+        builder.append_extension(key_usage).unwrap();
         let extended_key_usage = ExtendedKeyUsage::new()
             .client_auth()
             .server_auth()
             .build()
             .unwrap();
-        let _ = builder.append_extension(extended_key_usage);
+        builder.append_extension(extended_key_usage).unwrap();
 
         builder
             .set_not_before(&Asn1Time::days_from_now(0).unwrap())
@@ -301,43 +302,47 @@ impl X509 {
             let mut serial = BigNum::new().unwrap();
             serial.rand(128, MsbOption::MAYBE_ZERO, false).unwrap();
             let serial = serial.to_asn1_integer().unwrap();
-            let _ = builder.set_serial_number(&serial);
+            builder.set_serial_number(&serial).unwrap();
         }
-
+        let context = builder.x509v3_context(None, None);
         // Subject alt names - The first is assumed to be the application uri. The remainder
         // are either IP or DNS entries.
-        if !x509_data.alt_host_names.is_empty() {
-            let subject_alternative_name = {
-                let mut subject_alternative_name = SubjectAlternativeName::new();
-                x509_data
-                    .alt_host_names
-                    .iter()
-                    .enumerate()
-                    .for_each(|(i, alt_host_name)| {
-                        if !alt_host_name.is_empty() {
-                            if i == 0 {
-                                // The first entry is the application uri
-                                subject_alternative_name.uri(alt_host_name);
-                            } else if alt_host_name.parse::<Ipv4Addr>().is_ok()
-                                || alt_host_name.parse::<Ipv6Addr>().is_ok()
-                            {
-                                // Treat this as an IPv4/IPv6 address
-                                subject_alternative_name.ip(alt_host_name);
-                            } else {
-                                // Treat this as a DNS entry
-                                subject_alternative_name.dns(alt_host_name);
-                            }
+        let subject_alternative_name = if !x509_data.alt_host_names.is_empty() {
+            let mut subject_alternative_name = SubjectAlternativeName::new();
+            x509_data
+                .alt_host_names
+                .iter()
+                .enumerate()
+                .for_each(|(i, alt_host_name)| {
+                    if !alt_host_name.is_empty() {
+                        if i == 0 {
+                            // The first entry is the application uri
+                            subject_alternative_name.uri(alt_host_name);
+                        } else if alt_host_name.parse::<Ipv4Addr>().is_ok()
+                            || alt_host_name.parse::<Ipv6Addr>().is_ok()
+                        {
+                            // Treat this as an IPv4/IPv6 address
+                            subject_alternative_name.ip(alt_host_name);
+                        } else {
+                            // Treat this as a DNS entry
+                            subject_alternative_name.dns(alt_host_name);
                         }
-                    });
-                subject_alternative_name
-                    .build(&builder.x509v3_context(None, None))
-                    .unwrap()
-            };
+                    }
+                });
+            Some(subject_alternative_name.build(&context).unwrap())
+        } else {
+            None
+        };
+        // For self-signed certificate
+        let subject_key_identifier = SubjectKeyIdentifier::new().build(&context).unwrap();
+        if let Some(subject_alternative_name) = subject_alternative_name {
             builder.append_extension(subject_alternative_name).unwrap();
         }
-
+        builder.append_extension(subject_key_identifier).unwrap();
         // Self-sign
-        let _ = builder.sign(&pkey.value, hash::MessageDigest::sha256());
+        builder
+            .sign(&pkey.value, hash::MessageDigest::sha256())
+            .unwrap();
 
         Ok(X509::from(builder.build()))
     }
