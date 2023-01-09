@@ -203,6 +203,8 @@ pub struct ClientConfig {
     pub performance: Performance,
     /// Session name
     pub session_name: String,
+    /// Session request timeout in milliseconds
+    pub session_request_timeout: u32,
 }
 
 impl Config for ClientConfig {
@@ -306,6 +308,8 @@ impl Default for ClientConfig {
 impl ClientConfig {
     /// The default PKI directory
     pub const PKI_DIR: &'static str = "pki";
+    /// The session request timout in milliseconds.
+    pub const SESSION_REQUEST_TIMEOUT: u32 = 5 * 1000;
 
     pub fn new<T>(application_name: T, application_uri: T) -> Self
     where
@@ -344,6 +348,7 @@ impl ClientConfig {
                 single_threaded_executor: true,
             },
             session_name: "Rust OPC UA Client".into(),
+            session_request_timeout: Self::SESSION_REQUEST_TIMEOUT,
         }
     }
 }

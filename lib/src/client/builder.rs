@@ -285,6 +285,10 @@ impl ClientBuilder {
         self.config.decoding_options.max_chunk_count = max_chunk_count;
         self
     }
+    pub fn session_request_timeout(mut self, session_request_timeout: u32) -> Self {
+        self.config.session_request_timeout = session_request_timeout;
+        self
+    }
 }
 
 #[test]
@@ -310,6 +314,7 @@ fn client_builder() {
         .ignore_clock_skew()
         .single_threaded_executor()
         .session_name("SessionName")
+        .session_request_timeout(ClientConfig::SESSION_REQUEST_TIMEOUT)
         // TODO user tokens, endpoints
         ;
 

@@ -154,6 +154,7 @@ impl Session {
         decoding_options: DecodingOptions,
         ignore_clock_skew: bool,
         single_threaded_executor: bool,
+        request_timeout: u32,
     ) -> Session
     where
         T: Into<UAString>,
@@ -172,6 +173,7 @@ impl Session {
             ignore_clock_skew,
             secure_channel.clone(),
             subscription_state.clone(),
+            request_timeout,
         )));
 
         let transport = TcpTransport::new(
@@ -208,12 +210,13 @@ impl Session {
             let mut secure_channel = trace_write_lock!(self.secure_channel);
             secure_channel.clear_security_token();
         }
-
+        let request_timeout = self.session_state.read().request_timeout();
         // Create a new session state
         self.session_state = Arc::new(RwLock::new(SessionState::new(
             self.ignore_clock_skew,
             self.secure_channel.clone(),
             self.subscription_state.clone(),
+            request_timeout,
         )));
 
         // Keep the existing transport, we should never drop a tokio runtime from a sync function
