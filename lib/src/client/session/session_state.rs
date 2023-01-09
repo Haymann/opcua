@@ -155,7 +155,7 @@ impl SessionState {
     const FIRST_REQUEST_HANDLE: u32 = 1;
     const FIRST_MONITORED_ITEM_HANDLE: u32 = 1000;
 
-    const DEFAULT_REQUEST_TIMEOUT: u32 = 10 * 1000;
+    const DEFAULT_REQUEST_TIMEOUT: u32 = 5 * 1000; //10 * 1000;
     const SEND_BUFFER_SIZE: usize = 65535;
     const RECEIVE_BUFFER_SIZE: usize = 65535;
     const MAX_BUFFER_SIZE: usize = 65535;
