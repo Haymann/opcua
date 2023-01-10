@@ -422,7 +422,7 @@ impl TcpTransport {
         session_state: Arc<RwLock<SessionState>>,
         secure_channel: Arc<RwLock<SecureChannel>>,
         message_queue: Arc<RwLock<MessageQueue>>,
-        timeout_duration: Duration,
+        connect_timeout: Duration,
     ) -> Result<(ReadState, WriteState), StatusCode> {
         debug!(
             "Creating a connection task to connect to {} with url {}",
@@ -430,7 +430,7 @@ impl TcpTransport {
         );
 
         connection_state.set_state(ConnectionState::Connecting);
-        let socket = match timeout(timeout_duration, async {
+        let socket = match timeout(connect_timeout, async {
             TcpStream::connect(&addr).await.map_err(|err| {
                 error!("Could not connect to host {}, {:?}", addr, err);
                 StatusCode::BadCommunicationError
