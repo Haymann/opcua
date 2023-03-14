@@ -80,7 +80,7 @@
     log="*"
     # Enable deadlock_detection if there are any deadlocks in sync code
     base64="*"
-    bitflags="*"
+    bitflags="1.3.2"
     byteorder="*"
     bytes="*"
     derivative="*"
