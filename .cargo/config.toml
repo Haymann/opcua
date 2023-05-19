@@ -1,13 +1,16 @@
 [alias]
     debug="test -- --nocapture --color always"
-[source.crates-io]
-    registry    ="https://github.com/rust-lang/crates.io-index"
-    replace-with='tuna'
-[source.ustc]
-    registry="git://mirrors.ustc.edu.cn/crates.io-index"
-[source.tuna]
-    registry="https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git"
-[source.sjtu]
-    registry="https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index"
-[source.rustcc]
-    registry="git://crates.rustcc.com/crates.io-index"
+[source]
+    [source.crates-io]
+        registry    ="https://github.com/rust-lang/crates.io-index"
+        replace-with='rsproxy'
+    [source.ustc]
+        registry="git://mirrors.ustc.edu.cn/crates.io-index"
+    [source.tuna]
+        registry="https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git"
+    [source.sjtu]
+        registry="https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index"
+    [source.rustcc]
+        registry="git://crates.rustcc.com/crates.io-index"
+    [source.rsproxy]
+        registry="https://rsproxy.cn/crates.io-index"
