@@ -2,8 +2,8 @@
     debug="test -- --nocapture --color always"
 [source]
     [source.crates-io]
-        registry    ="https://github.com/rust-lang/crates.io-index"
-        replace-with='rsproxy'
+        registry="https://index.crates.io"
+    # replace-with='rsproxy'
     [source.ustc]
         registry="git://mirrors.ustc.edu.cn/crates.io-index"
     [source.tuna]
