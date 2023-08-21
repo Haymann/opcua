@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (C) 2017-2022 Adam Lock
 
-use std::{collections::HashMap, sync::mpsc::SyncSender};
+use std::{collections::HashMap, sync::mpsc::SyncSender, mem};
 
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
@@ -13,8 +13,8 @@ pub(crate) struct MessageQueue {
     /// Basically, the sent requests reside here until the response returns at which point the entry is removed.
     /// If a response is received for which there is no entry, the response will be discarded.
     inflight_requests: HashMap<u32, Option<SyncSender<SupportedMessage>>>,
-    /// A map of incoming responses waiting to be processed
-    responses: HashMap<u32, SupportedMessage>,
+    /// A queue of incoming responses waiting to be processed
+    async_responses: Vec<SupportedMessage>,
     /// This is the queue that messages will be sent onto the transport for sending
     sender: Option<UnboundedSender<Message>>,
 }
@@ -29,20 +29,18 @@ impl MessageQueue {
     pub fn new() -> MessageQueue {
         MessageQueue {
             inflight_requests: HashMap::new(),
-            responses: HashMap::new(),
+            async_responses: Vec::new(),
             sender: None,
         }
     }
 
     pub(crate) fn clear(&mut self) {
         self.inflight_requests.clear();
-        self.responses.clear();
+        self.async_responses.clear();
     }
 
     // Creates the transmission queue that outgoing requests will be sent over
-    pub(crate) fn make_request_channel(
-        &mut self,
-    ) -> UnboundedReceiver<Message> {
+    pub(crate) fn make_request_channel(&mut self) -> UnboundedReceiver<Message> {
         let (tx, rx) = mpsc::unbounded_channel();
         self.sender = Some(tx.clone());
         rx
@@ -53,8 +51,9 @@ impl MessageQueue {
     }
 
     fn send_message(&self, message: Message) -> bool {
-        let sender = self.sender.as_ref()
-            .expect("MessageQueue::send_message should never be called before make_request_channel");
+        let sender = self.sender.as_ref().expect(
+            "MessageQueue::send_message should never be called before make_request_channel",
+        );
         if sender.is_closed() {
             error!("Send message will fail because sender has been closed");
             false
@@ -114,7 +113,7 @@ impl MessageQueue {
                     );
                 }
             } else {
-                self.responses.insert(request_handle, response);
+                self.async_responses.push(response);
             }
         } else {
             error!("A response with request handle {} doesn't belong to any request and will be ignored, inflight requests = {:?}, request = {:?}", request_handle, self.inflight_requests, response);
@@ -130,16 +129,6 @@ impl MessageQueue {
     /// Takes all pending asynchronous responses into a vector sorted oldest to latest and
     /// returns them to the caller.
     pub(crate) fn async_responses(&mut self) -> Vec<SupportedMessage> {
-        // Gather up all request handles
-        let mut async_handles = self.responses.keys().copied().collect::<Vec<_>>();
-
-        // Order them from oldest to latest (except if handles wrap)
-        async_handles.sort();
-
-        // Remove each item from the map and return to caller
-        async_handles
-            .iter()
-            .map(|k| self.responses.remove(k).unwrap())
-            .collect()
+        mem::take(&mut self.async_responses)
     }
 }

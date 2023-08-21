@@ -523,7 +523,7 @@ impl SessionState {
 
                 // Update subscriptions based on response
                 // Queue acknowledgements for next request
-                let notification_message = response.notification_message.clone();
+                let notification_message = &response.notification_message;
                 let subscription_id = response.subscription_id;
 
                 // Queue an acknowledgement for this request (if it has data)

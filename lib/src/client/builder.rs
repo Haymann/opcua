@@ -85,6 +85,9 @@ impl ClientBuilder {
     pub fn config(self) -> ClientConfig {
         self.config
     }
+    pub fn config_mut(&mut self) -> &mut ClientConfig {
+        return &mut self.config;
+    }
 
     /// Tests if the builder is in a valid state to be able to yield a `Client`.
     pub fn is_valid(&self) -> bool {
