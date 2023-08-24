@@ -144,20 +144,17 @@ impl ReadState {
                 self.chunks.remove(&chunk_info.sequence_header.request_id);
                 return Ok(None);
             }
-            _ => {
-                // Drop through
+            MessageIsFinalType::Final => {
+                let chunks = self.chunks.entry(req_id).or_insert_with(Vec::new);
+                chunks.push(MessageChunkWithChunkInfo {
+                    header: chunk_info,
+                    data_with_header: chunk.data,
+                });
+                let in_chunks = Self::merge_chunks(self.chunks.remove(&req_id).unwrap())?;
+                let message = self.turn_received_chunks_into_message(&in_chunks)?;
+                return Ok(Some(message));
             }
         }
-
-        let chunks = self.chunks.entry(req_id).or_insert_with(Vec::new);
-        chunks.push(MessageChunkWithChunkInfo {
-            header: chunk_info,
-            data_with_header: chunk.data,
-        });
-        let in_chunks = Self::merge_chunks(self.chunks.remove(&req_id).unwrap())?;
-        let message = self.turn_received_chunks_into_message(&in_chunks)?;
-
-        Ok(Some(message))
     }
 
     fn merge_chunks(

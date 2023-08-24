@@ -744,11 +744,17 @@ impl SecureChannel {
                 encrypted_range,
                 &mut decrypted_data,
             )?;
-
+            let body_size = if let MessageSecurityMode::SignAndEncrypt = self.security_mode {
+                let padded_size = decrypted_size - signature_size;
+                let padding_size = decrypted_data[padded_size - 1] as usize;
+                padded_size - padding_size - 1
+            } else {
+                decrypted_size - signature_size
+            };
             // Now we need to strip off signature
             Self::update_message_size_and_truncate(
                 decrypted_data,
-                decrypted_size - signature_size,
+                body_size,
                 &self.decoding_options,
             )?
         } else {
