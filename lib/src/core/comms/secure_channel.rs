@@ -1048,30 +1048,30 @@ impl SecureChannel {
         }
     }
 
-    fn local_keys(&self) -> &(Vec<u8>, AesKey, Vec<u8>) {
-        self.local_keys.as_ref().unwrap()
+    fn local_keys(&self) -> Result<&(Vec<u8>, AesKey, Vec<u8>),StatusCode> {
+        self.local_keys.as_ref().ok_or(StatusCode::BadUnexpectedError)
     }
 
-    fn remote_keys(&self) -> &(Vec<u8>, AesKey, Vec<u8>) {
-        self.remote_keys.as_ref().unwrap()
+    fn remote_keys(&self) -> Result<&(Vec<u8>, AesKey, Vec<u8>),StatusCode> {
+        self.remote_keys.as_ref().ok_or(StatusCode::BadUnexpectedError)
     }
 
-    fn encryption_keys(&self) -> (&AesKey, &[u8]) {
-        let keys = self.local_keys();
-        (&keys.1, &keys.2)
+    fn encryption_keys(&self) -> Result<(&AesKey, &[u8]),StatusCode> {
+        let keys = self.local_keys()?;
+        Ok((&keys.1, &keys.2))
     }
 
-    fn signing_key(&self) -> &[u8] {
-        &(self.local_keys()).0
+    fn signing_key(&self) -> Result<&[u8],StatusCode> {
+        Ok(&(self.local_keys()?).0)
     }
 
-    fn decryption_keys(&self) -> (&AesKey, &[u8]) {
-        let keys = self.remote_keys();
-        (&keys.1, &keys.2)
+    fn decryption_keys(&self) -> Result<(&AesKey, &[u8]),StatusCode> {
+        let keys = self.remote_keys()?;
+        Ok((&keys.1, &keys.2))
     }
 
-    fn verification_key(&self) -> &[u8] {
-        &(self.remote_keys()).0
+    fn verification_key(&self) -> Result<&[u8],StatusCode> {
+        Ok(&(self.remote_keys()?).0)
     }
 
     /// Encode data using security. Destination buffer is expected to be same size as src and expected
@@ -1115,7 +1115,7 @@ impl SecureChannel {
                 let _ = self.symmetric_sign(src, signed_range, &mut dst_tmp)?;
 
                 // Encrypt the sequence header, payload, signature
-                let (key, iv) = self.encryption_keys();
+                let (key, iv) = self.encryption_keys()?;
                 let encrypted_size = self.security_policy.symmetric_encrypt(
                     key,
                     iv,
@@ -1151,7 +1151,7 @@ impl SecureChannel {
         );
 
         // Sign the message header, security header, sequence header, body, padding
-        let signing_key = self.signing_key();
+        let signing_key = self.signing_key()?;
         self.security_policy.symmetric_sign(
             signing_key,
             &src[signed_range.clone()],
@@ -1202,7 +1202,7 @@ impl SecureChannel {
                     signed_range,
                     signed_range.end
                 );
-                let verification_key = self.verification_key();
+                let verification_key = self.verification_key()?;
                 self.security_policy.symmetric_verify_signature(
                     verification_key,
                     &dst[signed_range.clone()],
@@ -1226,7 +1226,7 @@ impl SecureChannel {
 
                 // Decrypt encrypted portion
                 let mut decrypted_tmp = vec![0u8; ciphertext_size + 16]; // tmp includes +16 for blocksize
-                let (key, iv) = self.decryption_keys();
+                let (key, iv) = self.decryption_keys()?;
 
                 trace!(
                     "Secure decrypt called with encrypted range {:?}",
@@ -1254,7 +1254,7 @@ impl SecureChannel {
                     signed_range,
                     signature_range
                 );
-                let verification_key = self.verification_key();
+                let verification_key = self.verification_key()?;
                 self.security_policy.symmetric_verify_signature(
                     verification_key,
                     &dst[signed_range],
