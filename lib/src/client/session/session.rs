@@ -12,13 +12,13 @@ use std::{
     collections::HashSet,
     result::Result,
     str::FromStr,
-    sync::{mpsc::SyncSender, Arc},
+    sync::{Arc, mpsc::SyncSender},
     thread,
 };
 
 use tokio::{
     sync::oneshot,
-    time::{interval, Duration, Instant},
+    time::{Duration, Instant, interval},
 };
 
 use crate::{
@@ -38,16 +38,16 @@ use crate::{
         subscription_state::SubscriptionState,
     },
     core::{
+        RUNTIME,
         comms::{
             secure_channel::{Role, SecureChannel},
             url::*,
         },
         supported_message::SupportedMessage,
-        RUNTIME,
     },
     crypto::{
-        self as crypto, user_identity::make_user_name_identity_token, CertificateStore,
-        SecurityPolicy, X509,
+        self as crypto, CertificateStore, SecurityPolicy, X509,
+        user_identity::make_user_name_identity_token,
     },
     deregister_runtime_component, register_runtime_component,
     sync::*,
@@ -310,7 +310,10 @@ impl Session {
             match self.activate_session() {
                 Err(status_code) => {
                     // Activation didn't work, so create a new session
-                    info!("Session activation failed on reconnect, error = {}, so creating a new session", status_code);
+                    info!(
+                        "Session activation failed on reconnect, error = {}, so creating a new session",
+                        status_code
+                    );
                     {
                         let mut session_state = trace_write_lock!(self.session_state);
                         session_state.reset();
@@ -360,7 +363,10 @@ impl Session {
 
             // But if it didn't work, then some or all subscriptions have to be remade.
             if !subscription_ids_to_recreate.is_empty() {
-                session_warn!(self, "Some or all of the existing subscriptions could not be transferred and must be created manually");
+                session_warn!(
+                    self,
+                    "Some or all of the existing subscriptions could not be transferred and must be created manually"
+                );
             }
 
             // Now create any subscriptions that could not be transferred
@@ -467,7 +473,11 @@ impl Session {
 
                     match session_retry_policy.should_retry_connect(DateTime::now()) {
                         Answer::GiveUp => {
-                            session_error!(self, "Session has given up trying to connect to the server after {} retries", session_retry_policy.retry_count());
+                            session_error!(
+                                self,
+                                "Session has given up trying to connect to the server after {} retries",
+                                session_retry_policy.retry_count()
+                            );
                             return Err(StatusCode::BadNotConnected);
                         }
                         Answer::Retry => {
@@ -1113,7 +1123,7 @@ impl Session {
                             );
                             Ok((identity_token, SignatureData::null()))
                         }
-                        IdentityToken::UserName(ref user, ref pass) => {
+                        IdentityToken::UserName(user, pass) => {
                             let secure_channel = trace_read_lock!(self.secure_channel);
                             let identity_token = self.make_user_name_identity_token(
                                 &secure_channel,
@@ -1127,8 +1137,8 @@ impl Session {
                             );
                             Ok((identity_token, SignatureData::null()))
                         }
-                        IdentityToken::X509(ref cert_path, ref private_key_path) => {
-                            if let Some(ref server_cert) = server_cert {
+                        IdentityToken::X509(cert_path, private_key_path) => {
+                            if let Some(server_cert) = server_cert {
                                 // The cert will be supplied to the server along with a signature to prove we have the private key to go with the cert
                                 let certificate_data = CertificateStore::read_cert(cert_path)
                                     .map_err(|e| {
@@ -1171,7 +1181,10 @@ impl Session {
 
                                 Ok((identity_token, user_token_signature))
                             } else {
-                                session_error!(self, "Cannot create an X509IdentityToken because the remote server has no cert with which to create a signature");
+                                session_error!(
+                                    self,
+                                    "Cannot create an X509IdentityToken because the remote server has no cert with which to create a signature"
+                                );
                                 Err(StatusCode::BadCertificateInvalid)
                             }
                         }
@@ -1585,7 +1598,10 @@ impl SubscriptionService for Session {
         priority: u8,
     ) -> Result<(), StatusCode> {
         if subscription_id == 0 {
-            session_error!(self, "modify_subscription, subscription id must be non-zero, or the subscription is considered invalid");
+            session_error!(
+                self,
+                "modify_subscription, subscription id must be non-zero, or the subscription is considered invalid"
+            );
             Err(StatusCode::BadInvalidArgument)
         } else if !self.subscription_exists(subscription_id) {
             session_error!(self, "modify_subscription, subscription id does not exist");

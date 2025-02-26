@@ -4,6 +4,8 @@
 
 use std::collections::{BTreeMap, VecDeque};
 
+use chrono::TimeDelta;
+
 use crate::types::{
     service_types::{NotificationMessage, PublishRequest, PublishResponse, ServiceFault},
     status_code::StatusCode,
@@ -13,8 +15,8 @@ use crate::types::{
 use crate::server::{
     address_space::types::AddressSpace,
     subscriptions::{
-        subscription::{Subscription, TickReason},
         PublishRequestEntry, PublishResponseEntry,
+        subscription::{Subscription, TickReason},
     },
 };
 
@@ -461,8 +463,7 @@ impl Subscriptions {
         sequence_nrs_to_remove.iter().for_each(|n| {
             trace!(
                 "Removing notification for subscription {}, sequence nr {}",
-                n.0,
-                n.1
+                n.0, n.1
             );
             let _ = self.retransmission_queue.remove(n);
         });

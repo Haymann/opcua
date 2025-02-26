@@ -9,17 +9,17 @@ use std::convert::TryFrom;
 use regex::Regex;
 
 use crate::types::{
+    AttributeId, ExtensionObject, NodeId, NumericRange, QualifiedName, TimestampsToReturn, Variant,
+    VariantTypeId,
     operand::Operand,
     service_types::{ContentFilterElement, FilterOperator, SimpleAttributeOperand},
     status_code::StatusCode,
-    AttributeId, ExtensionObject, NodeId, NumericRange, QualifiedName, TimestampsToReturn, Variant,
-    VariantTypeId,
 };
 
 use crate::server::address_space::{
+    AddressSpace,
     node::{NodeBase, NodeType},
     relative_path::find_node_from_browse_path,
-    AddressSpace,
 };
 
 /// Turns a list of operands inside extension objects to their analogous Operand objects
@@ -201,7 +201,7 @@ pub(crate) fn value_of_simple_attribute(
         // Find the actual node via browse path
         if let Ok(node) = find_node_from_browse_path(address_space, object_id, browse_path) {
             match node {
-                NodeType::Object(ref node) => {
+                NodeType::Object(node) => {
                     if o.attribute_id == AttributeId::NodeId as u32 {
                         node.node_id().into()
                     } else {
@@ -212,7 +212,7 @@ pub(crate) fn value_of_simple_attribute(
                         Variant::Empty
                     }
                 }
-                NodeType::Variable(ref node) => {
+                NodeType::Variable(node) => {
                     if o.attribute_id == AttributeId::Value as u32 {
                         if let Some(ref value) = node
                             .value(
@@ -259,9 +259,11 @@ pub(crate) fn value_of(
     address_space: &AddressSpace,
 ) -> Result<Variant, StatusCode> {
     match operand {
-        Operand::ElementOperand(ref o) => {
+        Operand::ElementOperand(o) => {
             if used_elements.contains(&o.index) {
-                error!("Operator contains elements that have already been used cyclical and is invalid");
+                error!(
+                    "Operator contains elements that have already been used cyclical and is invalid"
+                );
                 Err(StatusCode::BadFilterOperandInvalid)
             } else {
                 used_elements.insert(o.index);
@@ -276,8 +278,8 @@ pub(crate) fn value_of(
                 result
             }
         }
-        Operand::LiteralOperand(ref o) => Ok(o.value.clone()),
-        Operand::SimpleAttributeOperand(ref o) => {
+        Operand::LiteralOperand(o) => Ok(o.value.clone()),
+        Operand::SimpleAttributeOperand(o) => {
             Ok(value_of_simple_attribute(object_id, o, address_space))
         }
         Operand::AttributeOperand(_) => {

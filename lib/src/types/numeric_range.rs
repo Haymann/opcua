@@ -204,7 +204,7 @@ impl NumericRange {
             NumericRange::Range(min, max) => {
                 format!("{}:{}", min, max)
             }
-            NumericRange::MultipleRanges(ref ranges) => {
+            NumericRange::MultipleRanges(ranges) => {
                 let ranges: Vec<String> = ranges.iter().map(|r| r.as_string()).collect();
                 ranges.join(",")
             }
@@ -266,7 +266,7 @@ impl NumericRange {
             NumericRange::None => true,
             NumericRange::Index(_) => true,
             NumericRange::Range(min, max) => min < max,
-            NumericRange::MultipleRanges(ref ranges) => {
+            NumericRange::MultipleRanges(ranges) => {
                 let found_invalid = ranges.iter().any(|r| {
                     // Nested multiple ranges are not allowed
                     match r {

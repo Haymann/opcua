@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (C) 2017-2022 Adam Lock
 
-use rand::distributions::Alphanumeric;
 use rand::Rng;
+use rand::distributions::Alphanumeric;
 
 use opcua::server::prelude::*;
 
@@ -141,17 +141,17 @@ pub fn scalar_default_value(id: DataTypeId) -> Variant {
 pub fn scalar_random_value(id: DataTypeId) -> Variant {
     let mut rng = rand::thread_rng();
     match id {
-        DataTypeId::Boolean => rng.gen::<bool>().into(),
-        DataTypeId::Byte => rng.gen::<u8>().into(),
-        DataTypeId::SByte => rng.gen::<i8>().into(),
-        DataTypeId::Int16 => rng.gen::<i16>().into(),
-        DataTypeId::UInt16 => rng.gen::<u16>().into(),
-        DataTypeId::Int32 => rng.gen::<i32>().into(),
-        DataTypeId::UInt32 => rng.gen::<u32>().into(),
-        DataTypeId::Int64 => rng.gen::<i64>().into(),
-        DataTypeId::UInt64 => rng.gen::<u64>().into(),
-        DataTypeId::Float => rng.gen::<f32>().into(),
-        DataTypeId::Double => rng.gen::<f64>().into(),
+        DataTypeId::Boolean => rng.r#gen::<bool>().into(),
+        DataTypeId::Byte => rng.r#gen::<u8>().into(),
+        DataTypeId::SByte => rng.r#gen::<i8>().into(),
+        DataTypeId::Int16 => rng.r#gen::<i16>().into(),
+        DataTypeId::UInt16 => rng.r#gen::<u16>().into(),
+        DataTypeId::Int32 => rng.r#gen::<i32>().into(),
+        DataTypeId::UInt32 => rng.r#gen::<u32>().into(),
+        DataTypeId::Int64 => rng.r#gen::<i64>().into(),
+        DataTypeId::UInt64 => rng.r#gen::<u64>().into(),
+        DataTypeId::Float => rng.r#gen::<f32>().into(),
+        DataTypeId::Double => rng.r#gen::<f64>().into(),
         DataTypeId::String => {
             let s = (0..10)
                 .map(|_| rng.sample(Alphanumeric))
@@ -323,7 +323,7 @@ fn set_stress_timer(server: &mut Server, node_ids: Vec<NodeId>) {
         let mut address_space = address_space.write();
         let now = DateTime::now();
         node_ids.iter().for_each(|node_id| {
-            let value: Variant = rng.gen::<i32>().into();
+            let value: Variant = rng.r#gen::<i32>().into();
             let _ = address_space.set_variable_value_by_ref(node_id, value, &now, &now);
         });
     });

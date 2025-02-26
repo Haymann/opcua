@@ -3,8 +3,8 @@
 // Copyright (C) 2017-2022 Adam Lock
 
 use crate::types::{
-    service_types::NodeClass, status_code::StatusCode, AttributeId, DataValue, LocalizedText,
-    NodeId, NumericRange, QualifiedName, TimestampsToReturn, Variant, WriteMask,
+    AttributeId, DataValue, LocalizedText, NodeId, NumericRange, QualifiedName, TimestampsToReturn,
+    Variant, WriteMask, service_types::NodeClass, status_code::StatusCode,
 };
 
 use super::types::{
@@ -50,14 +50,14 @@ impl NodeType {
 
     pub fn as_mut_node(&mut self) -> &mut dyn Node {
         match self {
-            NodeType::Object(ref mut value) => value.as_mut(),
-            NodeType::ObjectType(ref mut value) => value.as_mut(),
-            NodeType::ReferenceType(ref mut value) => value.as_mut(),
-            NodeType::Variable(ref mut value) => value.as_mut(),
-            NodeType::VariableType(ref mut value) => value.as_mut(),
-            NodeType::View(ref mut value) => value.as_mut(),
-            NodeType::DataType(ref mut value) => value.as_mut(),
-            NodeType::Method(ref mut value) => value.as_mut(),
+            NodeType::Object(value) => value.as_mut(),
+            NodeType::ObjectType(value) => value.as_mut(),
+            NodeType::ReferenceType(value) => value.as_mut(),
+            NodeType::Variable(value) => value.as_mut(),
+            NodeType::VariableType(value) => value.as_mut(),
+            NodeType::View(value) => value.as_mut(),
+            NodeType::DataType(value) => value.as_mut(),
+            NodeType::Method(value) => value.as_mut(),
         }
     }
 

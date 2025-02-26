@@ -9,10 +9,11 @@ use std::{
     fmt,
     io::{Read, Write},
     str::FromStr,
-    {i16, i32, i64, i8, u16, u32, u64, u8},
+    {i8, i16, i32, i64, u8, u16, u32, u64},
 };
 
 use crate::types::{
+    DataValue, DiagnosticInfo,
     array::*,
     byte_string::ByteString,
     date_time::DateTime,
@@ -26,7 +27,6 @@ use crate::types::{
     qualified_name::QualifiedName,
     status_codes::StatusCode,
     string::{UAString, XmlElement},
-    DataValue, DiagnosticInfo,
 };
 
 pub(crate) struct EncodingMask {}
@@ -609,7 +609,7 @@ macro_rules! try_from_variant_to_array_impl {
 
             fn try_from(value: &Variant) -> Result<Self, Self::Error> {
                 match value {
-                    Variant::Array(ref array) => {
+                    Variant::Array(array) => {
                         let values = &array.values;
                         if !values_are_of_type(values, VariantTypeId::$vtype) {
                             Err(())
@@ -871,12 +871,12 @@ impl fmt::Display for Variant {
             Variant::Float(v) => write!(f, "{}", v),
             Variant::Double(v) => write!(f, "{}", v),
             Variant::Boolean(v) => write!(f, "{}", v),
-            Variant::String(ref v) => write!(f, "{}", v),
-            Variant::Guid(ref v) => write!(f, "{}", v),
-            Variant::DateTime(ref v) => write!(f, "{}", v),
-            Variant::NodeId(ref v) => write!(f, "{}", v),
-            Variant::ExpandedNodeId(ref v) => write!(f, "{}", v),
-            Variant::Variant(ref v) => write!(f, "Variant({})", v),
+            Variant::String(v) => write!(f, "{}", v),
+            Variant::Guid(v) => write!(f, "{}", v),
+            Variant::DateTime(v) => write!(f, "{}", v),
+            Variant::NodeId(v) => write!(f, "{}", v),
+            Variant::ExpandedNodeId(v) => write!(f, "{}", v),
+            Variant::Variant(v) => write!(f, "Variant({})", v),
             value => write!(f, "{:?}", value),
         }
     }
@@ -1726,7 +1726,7 @@ impl Variant {
 
         // Check value is same type as our array
         match self {
-            Variant::Array(ref mut array) => {
+            Variant::Array(array) => {
                 let values = &mut array.values;
                 match range {
                     NumericRange::None => Err(StatusCode::BadIndexRangeNoData),

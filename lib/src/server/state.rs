@@ -7,7 +7,7 @@
 use std::sync::Arc;
 
 use crate::core::prelude::*;
-use crate::crypto::{user_identity, PrivateKey, SecurityPolicy, X509};
+use crate::crypto::{PrivateKey, SecurityPolicy, X509, user_identity};
 use crate::sync::*;
 use crate::types::{
     profiles,
@@ -165,7 +165,10 @@ impl ServerState {
         let config = trace_read_lock!(self.config);
         if let Ok(hostname) = hostname_from_url(endpoint_url.as_ref()) {
             if !hostname.eq_ignore_ascii_case(&config.tcp_config.host) {
-                debug!("Endpoint url \"{}\" hostname supplied by caller does not match server's hostname \"{}\"", endpoint_url, &config.tcp_config.host);
+                debug!(
+                    "Endpoint url \"{}\" hostname supplied by caller does not match server's hostname \"{}\"",
+                    endpoint_url, &config.tcp_config.host
+                );
             }
             let endpoints = config
                 .endpoints
@@ -475,7 +478,10 @@ impl ServerState {
                 }
             }
         } else {
-            error!("Cannot find endpoint that matches path \"{}\", security policy {:?}, and security mode {:?}", endpoint_url, security_policy, security_mode);
+            error!(
+                "Cannot find endpoint that matches path \"{}\", security policy {:?}, and security mode {:?}",
+                endpoint_url, security_policy, security_mode
+            );
             Err(StatusCode::BadTcpEndpointUrlInvalid)
         }
     }
@@ -541,14 +547,16 @@ impl ServerState {
                 token.encryption_algorithm.as_ref()
             );
             let token_password = if !token.encryption_algorithm.is_null() {
-                if let Some(ref server_key) = server_key {
+                if let Some(server_key) = server_key {
                     user_identity::decrypt_user_identity_token_password(
                         token,
                         server_nonce.as_ref(),
                         server_key,
                     )?
                 } else {
-                    error!("Identity token password is encrypted but no server private key was supplied");
+                    error!(
+                        "Identity token password is encrypted but no server private key was supplied"
+                    );
                     return Err(StatusCode::BadIdentityTokenInvalid);
                 }
             } else {
@@ -610,7 +618,7 @@ impl ServerState {
             Err(StatusCode::BadIdentityTokenRejected)
         } else {
             let result = match server_certificate {
-                Some(ref server_certificate) => {
+                Some(server_certificate) => {
                     // Find the security policy used for verifying tokens
                     let user_identity_tokens = self.user_identity_tokens(config, endpoint);
                     let security_policy = user_identity_tokens

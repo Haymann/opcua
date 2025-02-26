@@ -5,6 +5,7 @@
 use std::convert::TryFrom;
 
 use crate::types::{
+    DecodingOptions, ExtensionObject, NodeId, QualifiedName, UAString, Variant,
     attribute::AttributeId,
     node_ids::ObjectId,
     service_types::{
@@ -12,7 +13,6 @@ use crate::types::{
         LiteralOperand, SimpleAttributeOperand,
     },
     status_code::StatusCode,
-    DecodingOptions, ExtensionObject, NodeId, QualifiedName, UAString, Variant,
 };
 
 #[derive(PartialEq)]
@@ -136,17 +136,17 @@ impl TryFrom<&ExtensionObject> for Operand {
 impl From<&Operand> for ExtensionObject {
     fn from(v: &Operand) -> Self {
         match v {
-            Operand::ElementOperand(ref op) => {
+            Operand::ElementOperand(op) => {
                 ExtensionObject::from_encodable(ObjectId::ElementOperand_Encoding_DefaultBinary, op)
             }
-            Operand::LiteralOperand(ref op) => {
+            Operand::LiteralOperand(op) => {
                 ExtensionObject::from_encodable(ObjectId::LiteralOperand_Encoding_DefaultBinary, op)
             }
-            Operand::AttributeOperand(ref op) => ExtensionObject::from_encodable(
+            Operand::AttributeOperand(op) => ExtensionObject::from_encodable(
                 ObjectId::AttributeOperand_Encoding_DefaultBinary,
                 op,
             ),
-            Operand::SimpleAttributeOperand(ref op) => ExtensionObject::from_encodable(
+            Operand::SimpleAttributeOperand(op) => ExtensionObject::from_encodable(
                 ObjectId::SimpleAttributeOperand_Encoding_DefaultBinary,
                 op,
             ),

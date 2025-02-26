@@ -492,7 +492,7 @@ impl BinaryEncoder<ExpandedNodeId> for ExpandedNodeId {
                 size += write_u16(stream, self.node_id.namespace)?;
                 size += value.encode(stream)?;
             }
-            Identifier::ByteString(ref value) => {
+            Identifier::ByteString(value) => {
                 size += write_u8(stream, data_encoding | 0x5)?;
                 size += write_u16(stream, self.node_id.namespace)?;
                 size += value.encode(stream)?;

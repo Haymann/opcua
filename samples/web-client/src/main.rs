@@ -13,10 +13,11 @@ use std::{
 };
 
 use actix_web::{
+    App, Error, HttpRequest, HttpResponse,
     actix::{Actor, ActorContext, AsyncContext, Handler, Message, Running, StreamHandler},
     fs, http,
     server::HttpServer,
-    ws, App, Error, HttpRequest, HttpResponse,
+    ws,
 };
 
 use opcua::client::prelude::*;
@@ -123,7 +124,7 @@ impl Handler<Event> for OPCUASession {
         println!(
             "Received event {}",
             match &msg {
-                Event::ConnectionStatusChange(ref connected) =>
+                Event::ConnectionStatusChange(connected) =>
                     format!("ConnectionStatusChangeEvent({})", connected),
                 Event::DataChange(_) => "DataChangeEvent".to_string(),
                 Event::Event(_) => "Event".to_string(),

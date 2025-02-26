@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use crate::core::comms::secure_channel::SecureChannel;
 use crate::core::supported_message::SupportedMessage;
-use crate::crypto::{self as crypto, random, CertificateStore, SecurityPolicy};
+use crate::crypto::{self as crypto, CertificateStore, SecurityPolicy, random};
 use crate::sync::*;
 use crate::types::{status_code::StatusCode, *};
 
@@ -14,7 +14,7 @@ use crate::server::{
     address_space::address_space::AddressSpace,
     constants,
     identity_token::IdentityToken,
-    services::{audit, Service},
+    services::{Service, audit},
     session::{Session, SessionManager},
     state::ServerState,
 };
@@ -230,9 +230,9 @@ impl SessionService {
         ) {
             // Need an endpoint
             error!(
-                    "activate_session, Endpoint does not exist for requested url & mode {}, {:?} / {:?}",
-                    endpoint_url, security_policy, security_mode
-                );
+                "activate_session, Endpoint does not exist for requested url & mode {}, {:?} / {:?}",
+                endpoint_url, security_policy, security_mode
+            );
             StatusCode::BadTcpEndpointUrlInvalid
         } else if security_policy != SecurityPolicy::None {
             // Crypto see 5.6.3.1 verify the caller is the same caller as create_session by validating
@@ -274,7 +274,11 @@ impl SessionService {
 
         if service_result.is_good() {
             if !session.is_activated() && session.secure_channel_id() != secure_channel_id {
-                error!("activate session, rejected secure channel id {} for inactive session does not match one used to create session, {}", secure_channel_id, session.secure_channel_id());
+                error!(
+                    "activate session, rejected secure channel id {} for inactive session does not match one used to create session, {}",
+                    secure_channel_id,
+                    session.secure_channel_id()
+                );
                 service_result = StatusCode::BadSecureChannelIdInvalid
             } else {
                 // TODO additional secure channel validation here for client certificate and user identity
@@ -360,7 +364,11 @@ impl SessionService {
                 // SecureChannel is not the same as the one associated with the CreateSession request.
 
                 if !session.is_activated() && session.secure_channel_id() != secure_channel_id {
-                    error!("close_session rejected, secure channel id {} for inactive session does not match one used to create session, {}", secure_channel_id, session.secure_channel_id());
+                    error!(
+                        "close_session rejected, secure channel id {} for inactive session does not match one used to create session, {}",
+                        secure_channel_id,
+                        session.secure_channel_id()
+                    );
                     return self.service_fault(
                         &request.request_header,
                         StatusCode::BadSecureChannelIdInvalid,
@@ -413,7 +421,7 @@ impl SessionService {
         session: &Session,
         client_signature: &SignatureData,
     ) -> StatusCode {
-        if let Some(ref client_certificate) = session.client_certificate() {
+        if let Some(client_certificate) = session.client_certificate() {
             if let Some(ref server_certificate) = server_state.server_certificate {
                 crypto::verify_signature_data(
                     client_signature,

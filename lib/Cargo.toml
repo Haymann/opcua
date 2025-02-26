@@ -1,77 +1,44 @@
 [package]
-    authors=[
-        "Adam Lock <locka99@gmail.com>",
-    ]
-    categories=[
-        "embedded",
-        "network-programming",
-    ]
-    description="OPC UA client and server API"
-    documentation="https://docs.rs/opcua/"
-    edition="2018"
-    homepage="https://github.com/locka99/opcua"
-    keywords=[
-        "opcua",
-        "opc",
-        "ua",
-    ]
-    license="MPL-2.0"
-    name="opcua"
-    readme="../README.md"
-    version="0.12.0" # OPCUARustVersion
+name = "opcua"
+version = "0.12.1"                               # OPCUARustVersion
+description = "OPC UA client and server API"
+authors = ["Adam Lock <locka99@gmail.com>"]
+homepage = "https://github.com/locka99/opcua"
+license = "MPL-2.0"
+keywords = ["opcua", "opc", "ua"]
+categories = ["embedded", "network-programming"]
+readme = "../README.md"
+documentation = "https://docs.rs/opcua/"
+edition = "2024"
 
 [lib]
-    name="opcua"
+name = "opcua"
 
 [badges]
-    appveyor ={repository="locka99/opcua"}
-    travis-ci={repository="locka99/opcua"}
+travis-ci = { repository = "locka99/opcua" }
+appveyor = { repository = "locka99/opcua" }
 
 [features]
-    all=[
-        "server",
-        "client",
-        "console-logging",
-        "http",
-    ]
-    default=[
-        "server",
-        "client",
-    ]
-    # This is for CI/CD testing on platforms with unresolved OpenSSL deps, don't use otherwise.
-    test-vendored-openssl=[
-        "all",
-        "vendored-openssl",
-    ]
-    # Server default settings
-    server=[
-        "generated-address-space",
-        "discovery-server-registration",
-    ]
-    # Client default settings
-    client=[
-    ]
-    # Console logging just installs a logger that writes out to the screen, useful for general logging
-    console-logging=[
-        "env_logger",
-    ]
-    # Includes all the code to populate the address space with the default node set. This is something that embedded
-    # systems may or may not require.
-    generated-address-space=[
-    ]
-    # Allows a server to register itself with a local discovery server. It does so by becoming a client to the LDS,
-    # which brings in a dependency to opcua-client. Omitting the feature saves some memory.
-    discovery-server-registration=[
-        "client",
-    ]
-    # OpenSSL can be compiled and statically linked to with this feature
-    vendored-openssl=[
-        "openssl/vendored",
-    ]
-    # Servers might want to show a web server with metric / diagnostic info
-    http=[
-        "actix-web",
-    ]
+default = ["server", "client"]
+all = ["server", "client", "console-logging", "http"]
+# This is for CI/CD testing on platforms with unresolved OpenSSL deps, don't use otherwise.
+test-vendored-openssl = ["all", "vendored-openssl"]
+# Server default settings
+server = ["generated-address-space", "discovery-server-registration"]
+# Client default settings
+client = []
+# Console logging just installs a logger that writes out to the screen, useful for general logging
+console-logging = ["env_logger"]
+# Includes all the code to populate the address space with the default node set. This is something that embedded
+# systems may or may not require.
+generated-address-space = []
+# Allows a server to register itself with a local discovery server. It does so by becoming a client to the LDS,
+# which brings in a dependency to opcua-client. Omitting the feature saves some memory.
+discovery-server-registration = ["client"]
+# OpenSSL can be compiled and statically linked to with this feature
+vendored-openssl = ["openssl/vendored"]
+# Servers might want to show a web server with metric / diagnostic info
+http = ["actix-web"]
 
 [dependencies]
     chrono={version="0.4", features=[
@@ -99,7 +66,7 @@
     serde_derive="*"
     serde_json="*"
     serde_yaml="*"
-    time="0.1"
+    time = { version = "0.3", features = ["macros"] }
     tokio={version="*", features=[
         "full",
     ]}
@@ -111,15 +78,15 @@
         "v4",
     ]}
 
-    [dependencies.env_logger]
-        optional=true
-        version ="*"
+[dependencies.env_logger]
+version = "0.9"
+optional = true
 
-    [dependencies.actix-web]
-        optional=true
-        version ="0.7"
+[dependencies.actix-web]
+version = "0.7"
+optional = true
 
 [dev-dependencies]
-    rustc-serialize="*"
-    serde_json     ="*"
-    tempdir        ="*"
+tempdir = "0.3"
+serde_json = "1.0"
+rustc-serialize = "0.3.24"

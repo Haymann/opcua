@@ -11,8 +11,8 @@ use std::{
 
 use crate::types::{
     encoding::{
-        process_decode_io_result, process_encode_io_result, write_i32, BinaryEncoder,
-        DecodingOptions, EncodingResult,
+        BinaryEncoder, DecodingOptions, EncodingResult, process_decode_io_result,
+        process_encode_io_result, write_i32,
     },
     status_codes::StatusCode,
 };
@@ -183,7 +183,7 @@ impl UAString {
     /// but max is allowed to be beyond the end in which case the remainder of the string is
     /// returned (see docs for NumericRange).
     pub fn substring(&self, min: usize, max: usize) -> Result<UAString, ()> {
-        if let Some(ref v) = self.value() {
+        if let Some(v) = self.value() {
             if min >= v.len() {
                 Err(())
             } else {

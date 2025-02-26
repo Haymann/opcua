@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (C) 2017-2022 Adam Lock
 
+use chrono::TimeDelta;
+
 use crate::core::supported_message::SupportedMessage;
 use crate::types::{service_types::PublishRequest, status_code::StatusCode};
 
@@ -29,7 +31,6 @@ pub struct PublishResponseEntry {
 fn duration_from_ms(d: f64) -> chrono::Duration {
     // Duration is a floating point number in millis so turn to microseconds for greater accuracy
     // 1 millisecond = 1000 microsecond
-    // time::Duration::microseconds((d * 1000f64) as i64)
     chrono::Duration::microseconds((d * 1000f64) as i64)
 }
 

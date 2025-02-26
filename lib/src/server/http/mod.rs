@@ -4,12 +4,12 @@
 
 use std::{
     path::PathBuf,
-    sync::{mpsc, Arc},
+    sync::{Arc, mpsc},
     thread,
 };
 
-use actix_web::{actix, fs, http, server, App, HttpRequest, HttpResponse, Responder};
-use tokio::time::{interval_at, Duration, Instant};
+use actix_web::{App, HttpRequest, HttpResponse, actix, fs, http, server};
+use tokio::time::{Duration, Instant, interval_at};
 
 use crate::sync::*;
 
@@ -23,7 +23,7 @@ struct HttpState {
     server_metrics: Arc<RwLock<ServerMetrics>>,
 }
 
-fn abort(req: &HttpRequest<HttpState>) -> impl Responder {
+fn abort(req: &HttpRequest<HttpState>) -> HttpResponse {
     if cfg!(debug_assertions) {
         let state = req.state();
         // Abort the server from the command
@@ -38,7 +38,7 @@ fn abort(req: &HttpRequest<HttpState>) -> impl Responder {
     }
 }
 
-fn metrics(req: &HttpRequest<HttpState>) -> impl Responder {
+fn metrics(req: &HttpRequest<HttpState>) -> HttpResponse {
     use std::ops::Deref;
 
     let state = req.state();

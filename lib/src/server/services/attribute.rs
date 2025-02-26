@@ -12,9 +12,9 @@ use crate::{
 
 use crate::server::{
     address_space::{
+        AddressSpace, UserAccessLevel,
         node::{HasNodeId, NodeBase, NodeType},
         variable::Variable,
-        AddressSpace, UserAccessLevel,
     },
     services::Service,
     session::Session,
@@ -544,7 +544,10 @@ impl AttributeService {
                     result_value.status = Some(StatusCode::BadIndexRangeNoData);
                 } else if !Self::is_supported_data_encoding(&node_to_read.data_encoding) {
                     // Caller must request binary
-                    debug!("read_node_value result for read node id {}, attribute {} is invalid data encoding", node_to_read.node_id, node_to_read.attribute_id);
+                    debug!(
+                        "read_node_value result for read node id {}, attribute {} is invalid data encoding",
+                        node_to_read.node_id, node_to_read.attribute_id
+                    );
                     result_value.status = Some(StatusCode::BadDataEncodingInvalid);
                 } else if let Some(attribute) = node.as_node().get_attribute_max_age(
                     timestamps_to_return,
@@ -582,7 +585,10 @@ impl AttributeService {
 
                     if let Some(status_code) = attribute.status {
                         if status_code.is_bad() {
-                            debug!("read_node_value result for read node id {}, attribute {} is bad {}", node_to_read.node_id, node_to_read.attribute_id, status_code);
+                            debug!(
+                                "read_node_value result for read node id {}, attribute {} is bad {}",
+                                node_to_read.node_id, node_to_read.attribute_id, status_code
+                            );
                         }
                     }
 
@@ -639,7 +645,7 @@ impl AttributeService {
         node: &NodeType,
         attribute_id: AttributeId,
     ) -> UserAccessLevel {
-        let user_access_level = if let NodeType::Variable(ref node) = node {
+        let user_access_level = if let NodeType::Variable(node) = node {
             node.user_access_level()
         } else {
             UserAccessLevel::CURRENT_READ
@@ -764,7 +770,12 @@ impl AttributeService {
             false
         };
         if !valid {
-            debug!("Variable value validation did not pass, check value {:?} against var {} data type of {}", value, variable.node_id(), node_data_type);
+            debug!(
+                "Variable value validation did not pass, check value {:?} against var {} data type of {}",
+                value,
+                variable.node_id(),
+                node_data_type
+            );
         }
         valid
     }
@@ -801,7 +812,7 @@ impl AttributeService {
                     // on the node impl that returns a datatype for the attribute regardless of node.
                     let data_type_valid = if attribute_id == AttributeId::Value {
                         match node {
-                            NodeType::Variable(ref variable) => {
+                            NodeType::Variable(variable) => {
                                 Self::validate_value_to_write(address_space, variable, value)
                             }
                             _ => true, // Other types don't have this attr but they will reject later during set
@@ -816,7 +827,7 @@ impl AttributeService {
                         let node = address_space.find_node_mut(&node_to_write.node_id).unwrap();
                         let result = if attribute_id == AttributeId::Value {
                             match node {
-                                NodeType::Variable(ref mut variable) => variable
+                                NodeType::Variable(variable) => variable
                                     .set_value(index_range, value.clone())
                                     .map_err(|err| {
                                         error!(

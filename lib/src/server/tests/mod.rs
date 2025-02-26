@@ -1,6 +1,6 @@
 use std::{path::PathBuf, sync::Arc};
 
-use chrono;
+use chrono::{self, TimeDelta};
 use time;
 
 use crate::core::{config::Config, supported_message::SupportedMessage};

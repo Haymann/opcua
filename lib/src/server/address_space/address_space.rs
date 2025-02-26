@@ -18,11 +18,11 @@ use crate::types::{
 
 use crate::server::{
     address_space::{
+        AttrFnGetter,
         node::{HasNodeId, NodeType},
         object::{Object, ObjectBuilder},
         references::{Reference, ReferenceDirection, References},
         variable::Variable,
-        AttrFnGetter,
     },
     callbacks, constants,
     diagnostics::ServerDiagnostics,
@@ -35,7 +35,7 @@ use crate::server::{
 macro_rules! find_node {
     ($a: expr, $id: expr, $node_type: ident) => {
         $a.find_node($id).and_then(|node| match node {
-            NodeType::$node_type(ref node) => Some(node.as_ref()),
+            NodeType::$node_type(node) => Some(node.as_ref()),
             _ => None,
         })
     };
@@ -45,7 +45,7 @@ macro_rules! find_node {
 macro_rules! find_node_mut {
     ($a: expr, $id: expr, $node_type: ident) => {
         $a.find_node_mut($id).and_then(|node| match node {
-            NodeType::$node_type(ref mut node) => Some(node.as_mut()),
+            NodeType::$node_type(node) => Some(node.as_mut()),
             _ => None,
         })
     };
@@ -1141,7 +1141,10 @@ impl AddressSpace {
         } else if let Some(object_type_id) = self.get_type_id(object_id) {
             self.has_reference(&object_type_id, method_id, ReferenceTypeId::HasComponent)
         } else {
-            error!("Method call to {:?} on {:?} but the method id is not on the object or its object type!", method_id, object_id);
+            error!(
+                "Method call to {:?} on {:?} but the method id is not on the object or its object type!",
+                method_id, object_id
+            );
             false
         }
     }
@@ -1240,13 +1243,12 @@ impl AddressSpace {
                     })
                     .map(|(k, _)| k.clone())
                     .collect::<Vec<NodeId>>();
-                if nodes.is_empty() {
-                    None
-                } else {
-                    Some(nodes)
-                }
+                if nodes.is_empty() { None } else { Some(nodes) }
             } else {
-                debug!("Cannot find nodes by type because node type id {:?} is not a matching class {:?}", node_type_id, node_type_class);
+                debug!(
+                    "Cannot find nodes by type because node type id {:?} is not a matching class {:?}",
+                    node_type_id, node_type_class
+                );
                 None
             }
         } else {

@@ -50,7 +50,7 @@ pub fn log_create_session(
             .revised_session_timeout(revised_session_timeout);
 
         // Client certificate info
-        if let Some(ref client_certificate) = session.client_certificate() {
+        if let Some(client_certificate) = session.client_certificate() {
             event.client_certificate(client_certificate)
         } else {
             event
