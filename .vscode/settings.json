@@ -171,7 +171,7 @@
     "terminal.integrated.fontWeightBold": "bold",
     "terminal.integrated.fontWeight": "normal",
     "editor.fontVariations": true,
-    "editor.defaultColorDecorators": true,
+    "editor.defaultColorDecorators": "auto",
     "markdown.occurrencesHighlight.enabled": true,
     "markdown.preview.breaks": true,
     "markdown.preview.typographer": true,
