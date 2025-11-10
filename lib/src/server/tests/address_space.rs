@@ -2,14 +2,15 @@ use std::sync::Arc;
 
 use crate::server::{
     address_space::{
+        EventNotifier,
         references::Reference,
         relative_path::{find_node_from_browse_path, find_nodes_relative_path_simple},
-        EventNotifier,
     },
     callbacks,
     prelude::*,
     tests::*,
 };
+use crate::types::argument::Argument;
 
 #[test]
 fn address_space() {
@@ -776,9 +777,11 @@ fn simple_delete_node() {
     assert!(address_space.find_node(&node_id).is_none());
     assert!(address_space.find_node(&root_node).is_some());
     assert!(!address_space.has_reference(&root_node, &node_id, ReferenceTypeId::Organizes));
-    assert!(!address_space
-        .references()
-        .reference_to_node_exists(&node_id));
+    assert!(
+        !address_space
+            .references()
+            .reference_to_node_exists(&node_id)
+    );
 }
 
 #[test]
@@ -848,9 +851,11 @@ fn delete_node() {
                 &node_type_id,
                 ReferenceTypeId::HasTypeDefinition
             ));
-            assert!(!address_space
-                .references()
-                .reference_to_node_exists(&node_id));
+            assert!(
+                !address_space
+                    .references()
+                    .reference_to_node_exists(&node_id)
+            );
         }
     });
 }
@@ -939,7 +944,9 @@ fn hierarchical_references() {
     assert!(
         refs.contains(&VariableId::Server_ServerCapabilities_MaxBrowseContinuationPoints.into())
     );
-    assert!(refs.contains(&VariableId::Server_ServerCapabilities_MaxQueryContinuationPoints.into()));
+    assert!(
+        refs.contains(&VariableId::Server_ServerCapabilities_MaxQueryContinuationPoints.into())
+    );
     assert!(
         refs.contains(&VariableId::Server_ServerCapabilities_MaxHistoryContinuationPoints.into())
     );

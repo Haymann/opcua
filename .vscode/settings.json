@@ -181,7 +181,7 @@
     "editor.linkedEditing": true,
     "diffEditor.codeLens": true,
     "diffEditor.diffAlgorithm": "advanced",
-    "editor.minimap.autohide": true,
+    "editor.minimap.autohide": "mouseover",
     "workbench.view.alwaysShowHeaderActions": true,
     "workbench.editor.enablePreviewFromCodeNavigation": true,
     "workbench.settings.openDefaultSettings": true,
