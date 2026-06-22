@@ -41,7 +41,7 @@ vendored-openssl = ["openssl/vendored"]
 http = ["actix-web"]
 
 [dependencies]
-    chrono={version="0.4", features=[
+    chrono={version="*", features=[
         "serde",
     ]}
     log="*"
@@ -66,7 +66,7 @@ http = ["actix-web"]
     serde_derive="*"
     serde_json="*"
     serde_yaml="*"
-    time = { version = "0.3", features = ["macros"] }
+    time = { version = "*", features = ["macros"] }
     tokio={version="*", features=[
         "full",
     ]}
@@ -87,6 +87,6 @@ version = "0.7"
 optional = true
 
 [dev-dependencies]
-tempdir = "0.3"
-serde_json = "1.0"
-rustc-serialize = "0.3.24"
+tempdir = "*"
+serde_json = "*"
+rustc-serialize = "*"
