@@ -21,7 +21,7 @@ use tokio::{
     io::{AsyncWriteExt, ReadHalf, WriteHalf},
     net::TcpStream,
     sync::mpsc::UnboundedReceiver,
-    time::{timeout, Duration},
+    time::{Duration, timeout},
 };
 use tokio_util::codec::FramedRead;
 
@@ -468,17 +468,18 @@ impl TcpTransport {
             (hello, read_state, write_state)
         };
 
-        write_state
-            .writer
-            .write_all(&hello.encode_to_vec())
-            .await
-            .map_err(|err| {
-                error!("Cannot send hello to server, err = {:?}", err);
-                StatusCode::BadCommunicationError
-            })?;
+        let _ = timeout(
+            connect_timeout,
+            write_state.writer.write_all(&hello.encode_to_vec()),
+        )
+        .await
+        .map_err(|err| {
+            error!("Cannot send hello to server, err = {:?}", err);
+            StatusCode::BadCommunicationError
+        })?;
         connection_state.set_state(ConnectionState::WaitingForAck);
-        match read_state.framed_read.next().await {
-            Some(Ok(Message::Acknowledge(ack))) => {
+        match timeout(connect_timeout, read_state.framed_read.next()).await {
+            Ok(Some(Ok(Message::Acknowledge(ack)))) => {
                 // TODO revise our sizes and other things according to the ACK
                 log::trace!("Received acknowledgement: {:?}", ack)
             }
@@ -582,7 +583,9 @@ impl TcpTransport {
                     let close_connection =
                         matches!(request, SupportedMessage::CloseSecureChannelRequest(_));
                     if close_connection {
-                        debug!("Writer is about to send a CloseSecureChannelRequest which means it should close in a moment");
+                        debug!(
+                            "Writer is about to send a CloseSecureChannelRequest which means it should close in a moment"
+                        );
                     }
 
                     // Write it to the outgoing buffer

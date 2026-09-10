@@ -1,6 +1,6 @@
 [package]
 name = "opcua"
-version = "0.12.1"                               # OPCUARustVersion
+version = "0.12.2"                               # OPCUARustVersion
 description = "OPC UA client and server API"
 authors = ["Adam Lock <locka99@gmail.com>"]
 homepage = "https://github.com/locka99/opcua"
@@ -59,7 +59,7 @@ http = ["actix-web"]
     openssl="*"
     openssl-sys="*"
     parking_lot={version="*", features=[
-        "send_guard",
+        "default","deadlock_detection"
     ]}
     regex="*"
     serde="*"
